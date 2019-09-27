@@ -1,0 +1,20 @@
+CC=gcc
+CFLAGS=-Wall -O2 -Iinclude/
+LIBS=-l gc
+OBJS=bin/main.o bin/gc.o bin/object.o
+
+
+plisp: $(OBJS)
+	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
+
+bin/%.o: src/%.c | bin
+	$(CC) $(CFLAGS) -c $^ -o $@
+
+bin:
+	dirname $(OBJS) | sort -u | xargs mkdir -p
+
+.PHONY: clean
+
+clean:
+	-rm -r bin
+	-rm  plisp
