@@ -6,6 +6,7 @@
 void plisp_GC_init(void);
 
 void *plisp_alloc(size_t len);
+void *plisp_realloc(void *old, size_t len);
 void *plisp_alloc_atomic(size_t len);
 
 plisp_t *alloc_plisp_obj(void);

@@ -1,7 +1,8 @@
 CC=gcc
 CFLAGS=-Wall -O2 -Iinclude/
 LIBS=-l gc
-OBJS=bin/main.o bin/gc.o bin/object.o bin/read.o bin/print.o
+OBJS=bin/main.o bin/gc.o bin/object.o bin/read.o bin/print.o bin/builtin.o \
+	 bin/superfasthash.o bin/hashtable.o
 
 
 plisp: $(OBJS)

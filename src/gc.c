@@ -9,6 +9,10 @@ void *plisp_alloc(size_t len) {
     return GC_MALLOC(len);
 }
 
+void *plisp_realloc(void *old, size_t len) {
+    return GC_REALLOC(old, len);
+}
+
 void *plisp_alloc_atomic(size_t len) {
     return GC_MALLOC_ATOMIC(len);
 }
