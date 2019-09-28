@@ -18,6 +18,22 @@ plisp_t *plisp_read_list(FILE *f) {
 
     if (ch == ')') {
         return plist_make_nil();
+    } else if (ch == '.') {
+        plisp_t *cdr = plisp_read(f);
+        do {
+            ch = fgetc(f);
+        } while (isspace(ch));
+
+        if (ch != ')') {
+            if (ch == EOF) {
+                fprintf(stderr, "error while parsing cons cell: expected ')', got EOF\n");
+            } else {
+                fprintf(stderr, "error while parsing cons cell: expected ')', got '%c'\n", ch);
+            }
+            return NULL;
+        }
+
+        return cdr;
     } else {
         ungetc(ch, f);
         plisp_t *car = plisp_read(f);
