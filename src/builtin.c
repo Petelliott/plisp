@@ -33,7 +33,7 @@ bool plisp_c_eqv(plisp_t *a, plisp_t *b) {
 }
 
 bool plisp_c_equal(plisp_t *a, plisp_t *b) {
-    if (plisp_c_equal(a, b)) {
+    if (plisp_c_eqv(a, b)) {
         return true;
     }
 

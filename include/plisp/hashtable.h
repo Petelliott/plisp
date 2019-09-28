@@ -22,7 +22,7 @@ struct ht_bucket {
 
 struct pl_hashtable {
     enum HT_KEY keytype;
-    plisp_t **block;
+    struct ht_bucket *block;
     size_t len;
     size_t elems;
 };

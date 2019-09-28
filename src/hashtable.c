@@ -35,4 +35,14 @@ plisp_hash_t plisp_hash_eqv(plisp_t *obj) {
 
     return plisp_hash_eq(obj);
 }
-plisp_hash_t plisp_hash_equal(plisp_t *obj);
+
+plisp_hash_t plisp_hash_equal(plisp_t *obj) {
+    if (obj->tid == TID_STRING || obj->tid == TID_SYMBOL) {
+        return SuperFastHash(obj->data.string.base, obj->data.string.len);
+    } else if (obj->tid == TID_CONS) {
+        return plisp_hash_equal(obj->data.cons.car) +
+               plisp_hash_equal(obj->data.cons.cdr);
+    }
+
+    return plisp_hash_eqv(obj);
+}
