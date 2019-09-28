@@ -45,7 +45,7 @@ union pl_obj_data {
 };
 
 struct pl_object {
-    int tid;
+    enum TYPEID tid;
     union pl_obj_data data;
 };
 

@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -O2 -Iinclude/
 LIBS=-l gc
-OBJS=bin/main.o bin/gc.o bin/object.o
+OBJS=bin/main.o bin/gc.o bin/object.o bin/read.o bin/print.o
 
 
 plisp: $(OBJS)
@@ -13,7 +13,10 @@ bin/%.o: src/%.c | bin
 bin:
 	dirname $(OBJS) | sort -u | xargs mkdir -p
 
-.PHONY: clean
+.PHONY: debug clean
+
+debug: CFLAGS=-Wall -g -Iinclude
+debug: clean plisp
 
 clean:
 	-rm -r bin
