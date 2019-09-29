@@ -19,8 +19,8 @@ int main() {
     putchar('\n');
 
     //plisp_t *obj = plisp_read(stdin);
-    //plisp_write(stdout, obj);
-    //putchar('\n');
+    plisp_write(stdout, ht);
+    putchar('\n');
 
     return 0;
 }

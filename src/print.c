@@ -26,6 +26,8 @@ void plisp_write(FILE *f, plisp_t *obj) {
         fprintf(f, "%li", obj->data.i);
     } else if (obj->tid == TID_NIL) {
         fprintf(f, "NIL");
+    } else if (obj->tid == TID_CUSTOM) {
+        fprintf(f, "#<%s>", obj->data.custom.nameid);
     } else {
         fprintf(f, "#?");
     }
