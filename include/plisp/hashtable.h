@@ -30,11 +30,14 @@ struct pl_hashtable {
 plisp_t *plisp_make_hashtable(enum HT_KEY keytype);
 
 plisp_t *plisp_hashtable_find(plisp_t *ht, plisp_t *key);
-plisp_t *plisp_hashtable_insert(plisp_t *ht, plisp_t *key, plisp_t *value);
+void plisp_hashtable_insert(plisp_t *ht, plisp_t *key, plisp_t *value);
 plisp_t *plisp_hashtable_delete(plisp_t *ht, plisp_t *key);
 
+plisp_hash_t plisp_hash(plisp_t *obj, enum HT_KEY keytype);
 plisp_hash_t plisp_hash_eq(plisp_t *obj);
 plisp_hash_t plisp_hash_eqv(plisp_t *obj);
 plisp_hash_t plisp_hash_equal(plisp_t *obj);
+
+bool plisp_compare(plisp_t *obja, plisp_t *objb, enum HT_KEY keytype);
 
 #endif
