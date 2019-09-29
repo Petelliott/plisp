@@ -24,7 +24,7 @@ plisp_t *plisp_read_list(FILE *f) {
     }
 
     if (ch == ')') {
-        return plist_make_nil();
+        return plisp_make_nil();
     } else if (ch == '.') {
         plisp_t *cdr = plisp_read(f);
         do {
@@ -59,6 +59,18 @@ bool symchar(int ch) {
            ch != '(' && ch != '"';
 }
 
+plisp_t *make_interned_symbol(const char *text) {
+    plisp_t *sym = plisp_make_symbol(text);
+
+    plisp_t *table_sym = plisp_hashtable_find(intern_table, sym);
+    if (table_sym == NULL) {
+        plisp_hashtable_insert(intern_table, sym, sym);
+        return sym;
+    } else {
+        return table_sym;
+    }
+}
+
 plisp_t *plisp_read_symbol(FILE *f) {
     //TODO: unbounded symbols
     char text[128];
@@ -72,16 +84,7 @@ plisp_t *plisp_read_symbol(FILE *f) {
     ungetc(ch, f);
 
     text[off] = '\0';
-
-    plisp_t *sym = plisp_make_symbol(text);
-
-    plisp_t *table_sym = plisp_hashtable_find(intern_table, sym);
-    if (table_sym == NULL) {
-        plisp_hashtable_insert(intern_table, sym, sym);
-        return sym;
-    } else {
-        return table_sym;
-    }
+    return make_interned_symbol(text);
 }
 
 plisp_t *plisp_read_number(FILE *f) {
@@ -102,6 +105,15 @@ plisp_t *plisp_read_number(FILE *f) {
     return plisp_make_int(num);
 }
 
+plisp_t *plisp_read_call(FILE *f, const char *sym) {
+    plisp_t *body = plisp_read(f);
+    return plisp_make_cons(
+        make_interned_symbol(sym),
+        plisp_make_cons(
+            body,
+            plisp_make_nil()));
+}
+
 plisp_t *plisp_read(FILE *f) {
     int ch;
     do {
@@ -117,14 +129,11 @@ plisp_t *plisp_read(FILE *f) {
     } else if (ch == '"') {
         return plisp_read_string(f);
     } else if (ch == '\'') {
-        //parse quote
-        return NULL;
+        return plisp_read_call(f, "quote");
     } else if (ch == '`') {
-        //parse quasiquote
-        return NULL;
+        return plisp_read_call(f, "quasiquote");
     } else if (ch == ',') {
-        //parse unquote
-        return NULL;
+        return plisp_read_call(f, "unquote");
     } else if (ch == '#') {
         //parse custom stuff
         return NULL;

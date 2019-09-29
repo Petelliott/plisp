@@ -49,7 +49,7 @@ struct pl_object {
     union pl_obj_data data;
 };
 
-plisp_t *plist_make_nil(void);
+plisp_t *plisp_make_nil(void);
 plisp_t *plisp_make_cons(plisp_t *car, plisp_t *cdr);
 plisp_t *plisp_make_int(long i);
 plisp_t *plisp_make_bool(bool b);

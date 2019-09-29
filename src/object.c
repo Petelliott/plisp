@@ -5,7 +5,7 @@
 
 plisp_t nil = { .tid = TID_NIL };
 
-plisp_t *plist_make_nil(void) {
+plisp_t *plisp_make_nil(void) {
     return &nil;
 }
 

@@ -10,11 +10,16 @@ int main() {
     plisp_GC_init();
     plisp_init_reader();
 
-    plisp_t *obja = plisp_read(stdin);
-    plisp_t *objb = plisp_read(stdin);
-    //plisp_write(stdout, obj);
-    //putchar('\n');
-    printf("%d\n", plisp_c_equal(obja, objb));
+    while (1) {
+        printf("> ");
+        plisp_t *obj = plisp_read(stdin);
+        if (obj == NULL) {
+            putchar('\n');
+            break;
+        }
+        plisp_write(stdout, obj);
+        putchar('\n');
+    }
 
     return 0;
 }
