@@ -14,6 +14,7 @@ enum TYPEID {
     TID_STRING,
     TID_SYMBOL,
     TID_CUSTOM,
+    TID_PRIM_FN
 };
 
 typedef struct pl_object plisp_t;
@@ -35,13 +36,20 @@ struct pl_custom {
     void *obj;
 };
 
+struct pl_prim_fn {
+    void *fp;
+    short nargs;
+    bool rest;
+};
+
 union pl_obj_data {
     struct pl_cons cons;
     long i;
     bool b;
     double f;
     struct pl_string string;
-    struct pl_custom  custom;
+    struct pl_custom custom;
+    struct pl_prim_fn primfn;
 };
 
 struct pl_object {
@@ -57,5 +65,6 @@ plisp_t *plisp_make_float(double f);
 plisp_t *plisp_make_string(const char *str);
 plisp_t *plisp_make_symbol(const char *name);
 plisp_t *plisp_make_custom(const char *name, void *obj);
+plisp_t *plisp_make_prim_fn(void *fp, short nargs, bool rest);
 
 #endif

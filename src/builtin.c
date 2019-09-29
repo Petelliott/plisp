@@ -1,6 +1,9 @@
 #include <plisp/builtin.h>
+#include <plisp/print.h>
+#include <plisp/eval.h>
 
 #include <string.h>
+#include <stdio.h>
 
 
 bool plisp_c_eq(plisp_t *a, plisp_t *b) {
@@ -52,4 +55,53 @@ bool plisp_c_equal(plisp_t *a, plisp_t *b) {
     }
 
     return false;
+}
+
+plisp_t *plisp_eq(plisp_t *a, plisp_t *b) {
+    return plisp_make_bool(plisp_c_eq(a, b));
+}
+
+plisp_t *plisp_eqv(plisp_t *a, plisp_t *b) {
+    return plisp_make_bool(plisp_c_eqv(a, b));
+}
+
+plisp_t *plisp_equal(plisp_t *a, plisp_t *b) {
+    return plisp_make_bool(plisp_c_equal(a, b));
+}
+
+plisp_t *plisp_cons(plisp_t *car, plisp_t *cdr) {
+    return plisp_make_cons(car, cdr);
+}
+
+plisp_t *plisp_car(plisp_t *obj) {
+    if (obj->tid != TID_CONS) {
+        plisp_write(stderr, obj);
+        fprintf(stderr, " is not a pair\n");
+        return plisp_make_nil();
+    }
+
+    return obj->data.cons.car;
+}
+
+plisp_t *plisp_cdr(plisp_t *obj) {
+    if (obj->tid != TID_CONS) {
+        plisp_write(stderr, obj);
+        fprintf(stderr, " is not a pair\n");
+        return plisp_make_nil();
+    }
+
+    return obj->data.cons.cdr;
+}
+
+plisp_t *plisp_plus(plisp_t *lst);
+plisp_t *plisp_minus(plisp_t *lst);
+
+void plisp_builtin_init(void) {
+    plisp_def_subr("eq?", plisp_eq, 2, false);
+    plisp_def_subr("eqv?", plisp_eqv, 2, false);
+    plisp_def_subr("equal?", plisp_equal, 2, false);
+
+    plisp_def_subr("cons", plisp_cons, 2, false);
+    plisp_def_subr("car", plisp_car, 1, false);
+    plisp_def_subr("cdr", plisp_cdr, 1, false);
 }

@@ -64,3 +64,13 @@ plisp_t *plisp_make_custom(const char *name, void *obj) {
 
     return pobj;
 }
+
+plisp_t *plisp_make_prim_fn(void *fp, short nargs, bool rest) {
+    plisp_t *obj = alloc_plisp_obj();
+    obj->tid = TID_PRIM_FN;
+    obj->data.primfn.fp = fp;
+    obj->data.primfn.nargs = nargs;
+    obj->data.primfn.rest = rest;
+
+    return obj;
+}

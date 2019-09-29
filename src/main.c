@@ -11,8 +11,7 @@ int main() {
     plisp_GC_init();
     plisp_init_reader();
     plisp_init_eval();
-
-    plisp_toplevel_def(make_interned_symbol("a"), plisp_make_int(1));
+    plisp_builtin_init();
 
     while (1) {
         printf("> ");

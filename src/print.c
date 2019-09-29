@@ -30,6 +30,8 @@ void plisp_write(FILE *f, plisp_t *obj) {
         fprintf(f, "NIL");
     } else if (obj->tid == TID_CUSTOM) {
         fprintf(f, "#<%s>", obj->data.custom.nameid);
+    } else if (obj->tid == TID_PRIM_FN) {
+        fprintf(f, "#<builtin function>");
     } else {
         fprintf(f, "#?");
     }
