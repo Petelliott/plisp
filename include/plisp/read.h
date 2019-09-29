@@ -8,6 +8,8 @@
 
 void plisp_init_reader(void);
 
+plisp_t *make_interned_symbol(const char *text);
+
 plisp_t *plisp_read(FILE *f);
 
 
