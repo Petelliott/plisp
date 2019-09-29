@@ -12,7 +12,7 @@ enum HT_KEY {
     HT_EQUAL
 };
 
-const char *ht_name = "hash-table";
+extern const char *ht_name;
 
 struct ht_bucket {
     plisp_t *key;
@@ -22,7 +22,7 @@ struct ht_bucket {
 
 struct pl_hashtable {
     enum HT_KEY keytype;
-    struct ht_bucket *block;
+    struct ht_bucket **buckets;
     size_t len;
     size_t elems;
 };
@@ -31,6 +31,7 @@ plisp_t *plisp_make_hashtable(enum HT_KEY keytype);
 
 plisp_t *plisp_hashtable_find(plisp_t *ht, plisp_t *key);
 plisp_t *plisp_hashtable_insert(plisp_t *ht, plisp_t *key, plisp_t *value);
+plisp_t *plisp_hashtable_delete(plisp_t *ht, plisp_t *key);
 
 plisp_hash_t plisp_hash_eq(plisp_t *obj);
 plisp_hash_t plisp_hash_eqv(plisp_t *obj);
