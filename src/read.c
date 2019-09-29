@@ -1,9 +1,16 @@
 #include <plisp/read.h>
 #include <plisp/object.h>
+#include <plisp/hashtable.h>
 
 #include <stdbool.h>
 #include <ctype.h>
 #include <stdio.h>
+
+plisp_t *intern_table = NULL;
+
+void plisp_init_reader(void) {
+    intern_table = plisp_make_hashtable(HT_EQUAL);
+}
 
 plisp_t *plisp_read_list(FILE *f) {
     int ch;
@@ -45,6 +52,36 @@ plisp_t *plisp_read_list(FILE *f) {
 
 plisp_t *plisp_read_string(FILE *f) {
     return NULL;
+}
+
+bool symchar(int ch) {
+    return !isspace(ch) && ch != EOF && ch != ')' &&
+           ch != '(' && ch != '"';
+}
+
+plisp_t *plisp_read_symbol(FILE *f) {
+    //TODO: unbounded symbols
+    char text[128];
+    size_t off = 0;
+
+    char ch;
+    while (symchar(ch = fgetc(f))) {
+        text[off] = ch;
+        off++;
+    }
+    ungetc(ch, f);
+
+    text[off] = '\0';
+
+    plisp_t *sym = plisp_make_symbol(text);
+
+    plisp_t *table_sym = plisp_hashtable_find(intern_table, sym);
+    if (table_sym == NULL) {
+        plisp_hashtable_insert(intern_table, sym, sym);
+        return sym;
+    } else {
+        return table_sym;
+    }
 }
 
 plisp_t *plisp_read_number(FILE *f) {
@@ -95,8 +132,8 @@ plisp_t *plisp_read(FILE *f) {
         ungetc(ch, f);
         return plisp_read_number(f);
     } else {
-        //parse symbols
-        return NULL;
+        ungetc(ch, f);
+        return plisp_read_symbol(f);
     }
 
     return NULL;

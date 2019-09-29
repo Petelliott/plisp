@@ -24,6 +24,8 @@ void plisp_write(FILE *f, plisp_t *obj) {
         fprintf(f, ")");
     } else if (obj->tid == TID_INT) {
         fprintf(f, "%li", obj->data.i);
+    } else if (obj->tid == TID_SYMBOL) {
+        fprintf(f, "%s", obj->data.string.base);
     } else if (obj->tid == TID_NIL) {
         fprintf(f, "NIL");
     } else if (obj->tid == TID_CUSTOM) {

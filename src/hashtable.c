@@ -67,6 +67,7 @@ void plisp_hashtable_insert(plisp_t *ht, plisp_t *key, plisp_t *value) {
     (*hb)->key = key;
     (*hb)->value = value;
     (*hb)->next = NULL;
+    table->elems++;
 }
 
 plisp_t *plisp_hashtable_delete(plisp_t *ht, plisp_t *key);

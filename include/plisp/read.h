@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <stddef.h>
 
+void plisp_init_reader(void);
+
 plisp_t *plisp_read(FILE *f);
+
 
 #endif

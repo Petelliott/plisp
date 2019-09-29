@@ -45,7 +45,7 @@ bool plisp_c_equal(plisp_t *a, plisp_t *b) {
         if (a->data.string.len != b->data.string.len) {
             return false;
         }
-        return strncmp(a->data.string.base, b->data.string.base, a->data.string.len);
+        return strncmp(a->data.string.base, b->data.string.base, a->data.string.len) == 0;
     } else if (a->tid == TID_CONS) {
         return plisp_c_equal(a->data.cons.car, b->data.cons.car) &&
                plisp_c_equal(a->data.cons.cdr, b->data.cons.cdr);
