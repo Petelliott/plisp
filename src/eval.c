@@ -11,20 +11,34 @@ plisp_t *toplevel = NULL;
 
 plisp_t *quotesym = NULL;
 plisp_t *ifsym = NULL;
+plisp_t *definesym = NULL;
+plisp_t *setsym = NULL;
 
 void plisp_init_eval(void) {
     toplevel = plisp_make_hashtable(HT_EQ);
     quotesym = make_interned_symbol("quote");
     ifsym = make_interned_symbol("if");
+    definesym = make_interned_symbol("define");
+    setsym = make_interned_symbol("set!");
 }
 
-void plisp_def(plisp_t *scope, plisp_t *sym, plisp_t *obj) {
+void plisp_c_def(plisp_t *scope, plisp_t *sym, plisp_t *obj) {
     plisp_t **lval = plisp_alloc(sizeof(plisp_t *));
     *lval = obj;
     plisp_hashtable_insert(scope, sym, lval);
 }
 
-plisp_t *plisp_ref(plisp_t *scope, plisp_t *sym) {
+void plisp_c_set(plisp_t *scope, plisp_t *sym, plisp_t *obj) {
+    plisp_t **lval = plisp_hashtable_find(scope, sym);
+    if (lval == NULL) {
+        fprintf(stderr, "variable '%s' not found\n", sym->data.string.base);
+        return;
+    }
+
+    *lval = obj;
+}
+
+plisp_t *plisp_c_ref(plisp_t *scope, plisp_t *sym) {
     plisp_t **lval = plisp_hashtable_find(scope, sym);
     if (lval == NULL) {
         fprintf(stderr, "variable '%s' not found\n", sym->data.string.base);
@@ -34,7 +48,7 @@ plisp_t *plisp_ref(plisp_t *scope, plisp_t *sym) {
 }
 
 void plisp_toplevel_def(plisp_t *sym, plisp_t *obj) {
-    plisp_def(toplevel, sym, obj);
+    plisp_c_def(toplevel, sym, obj);
 }
 
 void plisp_def_subr(const char *name, void *fp, short nargs, bool rest) {
@@ -114,24 +128,72 @@ plisp_t *plisp_call_prim(plisp_t *fn, plisp_t *rest_uneval, plisp_t *scope) {
     return NULL;
 }
 
+plisp_t *plisp_if(plisp_t *form, plisp_t *scope) {
+    if (plisp_c_length(form) != 4) {
+        fprintf(stderr, "invalid number of arguments to form if: ");
+        plisp_c_write(stderr, form);
+        fprintf(stderr, "\n");
+        return NULL;
+    }
+
+    if (plisp_c_not(plisp_eval(plisp_cadr(form), scope))) {
+        return plisp_eval(plisp_cadddr(form), scope);
+    } else {
+        return plisp_eval(plisp_caddr(form), scope);
+    }
+}
+
+plisp_t *plisp_define(plisp_t *form, plisp_t *scope) {
+    if (plisp_c_length(form) != 3) {
+        fprintf(stderr, "invalid number of arguments to form define: ");
+        plisp_c_write(stderr, form);
+        fprintf(stderr, "\n");
+        return NULL;
+    }
+
+    if (!plisp_c_symbolp(plisp_cadr(form))) {
+        fprintf(stderr, "define must take a symbol as arg 1, not ");
+        plisp_c_write(stderr, form);
+        fprintf(stderr, "\n");
+        return NULL;
+    }
+
+    plisp_t *val = plisp_eval(plisp_caddr(form), scope);
+    plisp_c_def(scope, plisp_cadr(form), val);
+    return val;
+}
+
+plisp_t *plisp_set(plisp_t *form, plisp_t *scope) {
+    if (plisp_c_length(form) != 3) {
+        fprintf(stderr, "invalid number of arguments to form set!: ");
+        plisp_c_write(stderr, form);
+        fprintf(stderr, "\n");
+        return NULL;
+    }
+
+    if (!plisp_c_symbolp(plisp_cadr(form))) {
+        fprintf(stderr, "set! must take a symbol as arg 1, not ");
+        plisp_c_write(stderr, form);
+        fprintf(stderr, "\n");
+        return NULL;
+    }
+
+    plisp_t *val = plisp_eval(plisp_caddr(form), scope);
+    plisp_c_set(scope, plisp_cadr(form), val);
+    return val;
+}
+
 plisp_t *plisp_eval(plisp_t *form, plisp_t *scope) {
     if (form->tid == TID_CONS) {
         // builtin special forms
         if (plisp_c_eq(plisp_car(form), quotesym)) {
-            return plisp_car(plisp_cdr(form));
+            return plisp_cadr(form);
         } else if (plisp_c_eq(plisp_car(form), ifsym)) {
-            if (plisp_c_length(form) != 4) {
-                fprintf(stderr, "invalid number of arguments to form if: ");
-                plisp_c_write(stderr, form);
-                fprintf(stderr, "\n");
-                return NULL;
-            }
-
-            if (plisp_c_not(plisp_eval(plisp_cadr(form), scope))) {
-                return plisp_eval(plisp_cadddr(form), scope);
-            } else {
-                return plisp_eval(plisp_caddr(form), scope);
-            }
+            return plisp_if(form, scope);
+        } else if (plisp_c_eq(plisp_car(form), definesym)) {
+            return plisp_define(form, scope);
+        } else if (plisp_c_eq(plisp_car(form), setsym)) {
+            return plisp_set(form, scope);
         }
 
         plisp_t* fn = plisp_eval(plisp_car(form), scope);
@@ -148,7 +210,7 @@ plisp_t *plisp_eval(plisp_t *form, plisp_t *scope) {
         fprintf(stderr, "\n");
         return NULL;
     } else if (form->tid == TID_SYMBOL) {
-        return plisp_ref(scope, form);
+        return plisp_c_ref(scope, form);
     }
 
     return form;

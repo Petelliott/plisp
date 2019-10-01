@@ -124,6 +124,14 @@ plisp_t *plisp_null(plisp_t *obj) {
     return plisp_make_bool(plisp_c_null(obj));
 }
 
+bool plisp_c_symbolp(plisp_t *obj) {
+    return obj->tid == TID_SYMBOL;
+}
+
+plisp_t *plisp_symbolp(plisp_t *obj) {
+    return plisp_make_bool(plisp_c_symbolp(obj));
+}
+
 bool plisp_c_not(plisp_t *obj) {
     return plisp_c_eq(obj, plisp_make_bool(false));
 }
@@ -182,6 +190,8 @@ void plisp_builtin_init(void) {
     plisp_def_subr("cadddr", plisp_cadddr, 1, false);
 
     plisp_def_subr("null?", plisp_null, 1, false);
+    plisp_def_subr("symbol?", plisp_symbolp, 1, false);
+
     plisp_def_subr("not", plisp_not, 1, false);
 
     plisp_def_subr("write", plisp_write, 1, false);

@@ -29,6 +29,9 @@ plisp_t *plisp_minus(plisp_t *lst);
 
 bool plisp_c_null(plisp_t *obj);
 plisp_t *plisp_null(plisp_t *obj);
+bool plisp_c_symbolp(plisp_t *obj);
+plisp_t *plisp_symbolp(plisp_t *obj);
+
 bool plisp_c_not(plisp_t *obj);
 plisp_t *plisp_not(plisp_t *obj);
 
