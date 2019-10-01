@@ -154,6 +154,18 @@ plisp_t *plisp_length(plisp_t *obj) {
     return plisp_make_int(plisp_c_length(obj));
 }
 
+plisp_t *plisp_reverse_inner(plisp_t *obj, plisp_t *onto) {
+    if (plisp_c_null(obj)) {
+        return onto;
+    } else {
+        return plisp_reverse_inner(plisp_cdr(obj), plisp_cons(plisp_car(obj), onto));
+    }
+}
+
+plisp_t *plisp_reverse(plisp_t *obj) {
+    return plisp_reverse_inner(obj, plisp_make_nil());
+}
+
 void plisp_builtin_init(void) {
     plisp_def_subr("eq?", plisp_eq, 2, false);
     plisp_def_subr("eqv?", plisp_eqv, 2, false);
@@ -176,4 +188,5 @@ void plisp_builtin_init(void) {
     plisp_def_subr("newline", plisp_newline, 0, false);
 
     plisp_def_subr("length", plisp_length, 1, false);
+    plisp_def_subr("reverse", plisp_reverse, 1, false);
 }

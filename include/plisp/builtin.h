@@ -37,6 +37,7 @@ plisp_t *plisp_newline();
 
 size_t plisp_c_length(plisp_t *obj);
 plisp_t *plisp_length(plisp_t *obj);
+plisp_t *plisp_reverse(plisp_t *obj);
 
 void plisp_builtin_init(void);
 
