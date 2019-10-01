@@ -16,7 +16,7 @@ extern const char *ht_name;
 
 struct ht_bucket {
     plisp_t *key;
-    plisp_t *value;
+    void *value;
     struct ht_bucket *next;
 };
 
@@ -29,9 +29,9 @@ struct pl_hashtable {
 
 plisp_t *plisp_make_hashtable(enum HT_KEY keytype);
 
-plisp_t *plisp_hashtable_find(plisp_t *ht, plisp_t *key);
-void plisp_hashtable_insert(plisp_t *ht, plisp_t *key, plisp_t *value);
-plisp_t *plisp_hashtable_delete(plisp_t *ht, plisp_t *key);
+void *plisp_hashtable_find(plisp_t *ht, plisp_t *key);
+void plisp_hashtable_insert(plisp_t *ht, plisp_t *key, void *value);
+void *plisp_hashtable_delete(plisp_t *ht, plisp_t *key);
 
 plisp_hash_t plisp_hash(plisp_t *obj, enum HT_KEY keytype);
 plisp_hash_t plisp_hash_eq(plisp_t *obj);

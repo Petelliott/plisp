@@ -3,6 +3,7 @@
 #include <plisp/read.h>
 #include <plisp/builtin.h>
 #include <plisp/print.h>
+#include <plisp/gc.h>
 
 #include <stdio.h>
 
@@ -17,8 +18,23 @@ void plisp_init_eval(void) {
     ifsym = make_interned_symbol("if");
 }
 
+void plisp_def(plisp_t *scope, plisp_t *sym, plisp_t *obj) {
+    plisp_t **lval = plisp_alloc(sizeof(plisp_t *));
+    *lval = obj;
+    plisp_hashtable_insert(scope, sym, lval);
+}
+
+plisp_t *plisp_ref(plisp_t *scope, plisp_t *sym) {
+    plisp_t **lval = plisp_hashtable_find(scope, sym);
+    if (lval == NULL) {
+        fprintf(stderr, "variable '%s' not found\n", sym->data.string.base);
+        return NULL;
+    }
+    return *lval;
+}
+
 void plisp_toplevel_def(plisp_t *sym, plisp_t *obj) {
-    plisp_hashtable_insert(toplevel, sym, obj);
+    plisp_def(toplevel, sym, obj);
 }
 
 void plisp_def_subr(const char *name, void *fp, short nargs, bool rest) {
@@ -37,7 +53,7 @@ typedef plisp_t *(*prim8)(plisp_t *,plisp_t *,plisp_t *,plisp_t *,plisp_t *,plis
 typedef plisp_t *(*prim9)(plisp_t *,plisp_t *,plisp_t *,plisp_t *,plisp_t *,plisp_t *,plisp_t *,plisp_t *,plisp_t *);
 typedef plisp_t *(*prim10)(plisp_t *,plisp_t *,plisp_t *,plisp_t *,plisp_t *,plisp_t *,plisp_t *,plisp_t *,plisp_t *,plisp_t *);
 
-plisp_t *plisp_call_prim(plisp_t *fn, plisp_t *rest_uneval) {
+plisp_t *plisp_call_prim(plisp_t *fn, plisp_t *rest_uneval, plisp_t *scope) {
     struct pl_prim_fn pfn = fn->data.primfn;
     plisp_t *args[PRIM_FN_MAX_ARGS];
 
@@ -48,7 +64,7 @@ plisp_t *plisp_call_prim(plisp_t *fn, plisp_t *rest_uneval) {
             fprintf(stderr, "\n");
             return NULL;
         }
-        args[i] = plisp_eval(plisp_car(rest_uneval));
+        args[i] = plisp_eval(plisp_car(rest_uneval), scope);
 
         if (args[i] == NULL) {
             return NULL;
@@ -98,7 +114,7 @@ plisp_t *plisp_call_prim(plisp_t *fn, plisp_t *rest_uneval) {
     return NULL;
 }
 
-plisp_t *plisp_eval(plisp_t *form) {
+plisp_t *plisp_eval(plisp_t *form, plisp_t *scope) {
     if (form->tid == TID_CONS) {
         // builtin special forms
         if (plisp_c_eq(plisp_car(form), quotesym)) {
@@ -111,20 +127,20 @@ plisp_t *plisp_eval(plisp_t *form) {
                 return NULL;
             }
 
-            if (plisp_c_not(plisp_eval(plisp_cadr(form)))) {
-                return plisp_eval(plisp_cadddr(form));
+            if (plisp_c_not(plisp_eval(plisp_cadr(form), scope))) {
+                return plisp_eval(plisp_cadddr(form), scope);
             } else {
-                return plisp_eval(plisp_caddr(form));
+                return plisp_eval(plisp_caddr(form), scope);
             }
         }
 
-        plisp_t* fn = plisp_eval(plisp_car(form));
+        plisp_t* fn = plisp_eval(plisp_car(form), scope);
         if (fn == NULL) {
             return NULL;
         }
 
         if (fn->tid == TID_PRIM_FN) {
-            return plisp_call_prim(fn, plisp_cdr(form));
+            return plisp_call_prim(fn, plisp_cdr(form), scope);
         }
 
         fprintf(stderr, "cannot call non-function: ");
@@ -132,12 +148,7 @@ plisp_t *plisp_eval(plisp_t *form) {
         fprintf(stderr, "\n");
         return NULL;
     } else if (form->tid == TID_SYMBOL) {
-        plisp_t *ret = plisp_hashtable_find(toplevel, form);
-        if (ret == NULL) {
-            fprintf(stderr, "variable '%s' not found\n", form->data.string.base);
-        }
-
-        return ret;
+        return plisp_ref(scope, form);
     }
 
     return form;

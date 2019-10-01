@@ -21,7 +21,7 @@ int main() {
             break;
         }
 
-        plisp_t *result = plisp_eval(obj);
+        plisp_t *result = plisp_eval(obj, toplevel);
         if (result != NULL) {
             plisp_c_write(stdout, result);
             putchar('\n');

@@ -34,7 +34,7 @@ plisp_t *plisp_make_hashtable(enum HT_KEY keytype) {
     return ht_obj;
 }
 
-plisp_t *plisp_hashtable_find(plisp_t *ht, plisp_t *key) {
+void *plisp_hashtable_find(plisp_t *ht, plisp_t *key) {
     struct pl_hashtable *table = plisp_object_to_hashtable(ht);
 
     plisp_hash_t hash = plisp_hash(key, table->keytype) % table->len;
@@ -49,7 +49,7 @@ plisp_t *plisp_hashtable_find(plisp_t *ht, plisp_t *key) {
     return NULL;
 }
 
-void plisp_hashtable_insert(plisp_t *ht, plisp_t *key, plisp_t *value) {
+void plisp_hashtable_insert(plisp_t *ht, plisp_t *key, void *value) {
     struct pl_hashtable *table = plisp_object_to_hashtable(ht);
 
     //TODO: grow table
@@ -70,7 +70,7 @@ void plisp_hashtable_insert(plisp_t *ht, plisp_t *key, plisp_t *value) {
     table->elems++;
 }
 
-plisp_t *plisp_hashtable_delete(plisp_t *ht, plisp_t *key);
+void *plisp_hashtable_delete(plisp_t *ht, plisp_t *key);
 
 plisp_hash_t plisp_hash(plisp_t *obj, enum HT_KEY keytype) {
     switch (keytype) {
