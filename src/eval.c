@@ -161,8 +161,10 @@ plisp_t *plisp_define(plisp_t *form, plisp_t *scope) {
         return NULL;
     }
 
+
+    plisp_c_def(scope, plisp_cadr(form), plisp_make_nil());
     plisp_t *val = plisp_eval(plisp_caddr(form), scope);
-    plisp_c_def(scope, plisp_cadr(form), val);
+    plisp_c_set(scope, plisp_cadr(form), val);
     return val;
 }
 
