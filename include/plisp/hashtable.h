@@ -28,6 +28,7 @@ struct pl_hashtable {
 };
 
 plisp_t *plisp_make_hashtable(enum HT_KEY keytype);
+plisp_t *plisp_hashtable_clone(plisp_t *ht);
 
 void *plisp_hashtable_find(plisp_t *ht, plisp_t *key);
 void plisp_hashtable_insert(plisp_t *ht, plisp_t *key, void *value);

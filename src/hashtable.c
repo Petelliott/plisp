@@ -34,6 +34,41 @@ plisp_t *plisp_make_hashtable(enum HT_KEY keytype) {
     return ht_obj;
 }
 
+struct ht_bucket *plisp_bucket_clone(struct ht_bucket *bucket) {
+    if (bucket == NULL) {
+        return NULL;
+    }
+
+    struct ht_bucket *hb = plisp_alloc(sizeof(struct ht_bucket));
+    hb->key = bucket->key;
+    hb->value = bucket->value;
+    hb->next = plisp_bucket_clone(bucket->next);
+
+    return hb;
+}
+
+plisp_t *plisp_hashtable_clone(plisp_t *ht) {
+    struct pl_hashtable *table = plisp_object_to_hashtable(ht);
+
+    struct pl_hashtable *nht = plisp_alloc(sizeof(struct pl_hashtable));
+    nht->len = table->len;
+    nht->elems = table->elems;
+    nht->keytype = table->keytype;
+    nht->buckets = plisp_alloc(sizeof(struct ht_bucket *) * table->len);
+    memset(nht->buckets, 0, sizeof(struct ht_bucket *) * table->len);
+
+    for(size_t i = 0; i < nht->len; ++i) {
+        nht->buckets[i] = plisp_bucket_clone(table->buckets[i]);
+    }
+
+    plisp_t *ht_obj = alloc_plisp_obj();
+    ht_obj->tid = TID_CUSTOM;
+    ht_obj->data.custom.nameid = ht_name;
+    ht_obj->data.custom.obj = nht;
+
+    return ht_obj;
+}
+
 void *plisp_hashtable_find(plisp_t *ht, plisp_t *key) {
     struct pl_hashtable *table = plisp_object_to_hashtable(ht);
 
