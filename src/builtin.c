@@ -75,7 +75,7 @@ plisp_t *plisp_cons(plisp_t *car, plisp_t *cdr) {
 
 plisp_t *plisp_car(plisp_t *obj) {
     if (obj->tid != TID_CONS) {
-        plisp_write(stderr, obj);
+        plisp_c_write(stderr, obj);
         fprintf(stderr, " is not a pair\n");
         return plisp_make_nil();
     }
@@ -85,12 +85,32 @@ plisp_t *plisp_car(plisp_t *obj) {
 
 plisp_t *plisp_cdr(plisp_t *obj) {
     if (obj->tid != TID_CONS) {
-        plisp_write(stderr, obj);
+        plisp_c_write(stderr, obj);
         fprintf(stderr, " is not a pair\n");
         return plisp_make_nil();
     }
 
     return obj->data.cons.cdr;
+}
+
+plisp_t *plisp_cddr(plisp_t *obj) {
+    return plisp_cdr(plisp_cdr(obj));
+}
+
+plisp_t *plisp_cdddr(plisp_t *obj) {
+    return plisp_cdr(plisp_cddr(obj));
+}
+
+plisp_t *plisp_cadr(plisp_t *obj) {
+    return plisp_car(plisp_cdr(obj));
+}
+
+plisp_t *plisp_caddr(plisp_t *obj) {
+    return plisp_car(plisp_cddr(obj));
+}
+
+plisp_t *plisp_cadddr(plisp_t *obj) {
+    return plisp_car(plisp_cdddr(obj));
 }
 
 plisp_t *plisp_plus(plisp_t *lst);
@@ -104,6 +124,36 @@ plisp_t *plisp_null(plisp_t *obj) {
     return plisp_make_bool(plisp_c_null(obj));
 }
 
+bool plisp_c_not(plisp_t *obj) {
+    return plisp_c_eq(obj, plisp_make_bool(false));
+}
+
+plisp_t *plisp_not(plisp_t *obj) {
+    return plisp_make_bool(plisp_c_not(obj));
+}
+
+plisp_t *plisp_write(plisp_t *obj) {
+    plisp_c_write(stdout, obj);
+    return plisp_make_nil();
+}
+
+plisp_t *plisp_newline() {
+    putchar('\n');
+    return plisp_make_nil();
+}
+
+size_t plisp_c_length(plisp_t *obj) {
+    if (obj == NULL || plisp_c_null(obj)) {
+        return 0;
+    }
+
+    return 1 + plisp_c_length(plisp_cdr(obj));
+}
+
+plisp_t *plisp_length(plisp_t *obj) {
+    return plisp_make_int(plisp_c_length(obj));
+}
+
 void plisp_builtin_init(void) {
     plisp_def_subr("eq?", plisp_eq, 2, false);
     plisp_def_subr("eqv?", plisp_eqv, 2, false);
@@ -113,5 +163,17 @@ void plisp_builtin_init(void) {
     plisp_def_subr("car", plisp_car, 1, false);
     plisp_def_subr("cdr", plisp_cdr, 1, false);
 
+    plisp_def_subr("cddr", plisp_cddr, 1, false);
+    plisp_def_subr("cdddr", plisp_cdddr, 1, false);
+    plisp_def_subr("cadr", plisp_cadr, 1, false);
+    plisp_def_subr("caddr", plisp_caddr, 1, false);
+    plisp_def_subr("cadddr", plisp_cadddr, 1, false);
+
     plisp_def_subr("null?", plisp_null, 1, false);
+    plisp_def_subr("not", plisp_not, 1, false);
+
+    plisp_def_subr("write", plisp_write, 1, false);
+    plisp_def_subr("newline", plisp_newline, 0, false);
+
+    plisp_def_subr("length", plisp_length, 1, false);
 }

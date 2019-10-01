@@ -9,10 +9,12 @@
 plisp_t *toplevel = NULL;
 
 plisp_t *quotesym = NULL;
+plisp_t *ifsym = NULL;
 
 void plisp_init_eval(void) {
     toplevel = plisp_make_hashtable(HT_EQ);
     quotesym = make_interned_symbol("quote");
+    ifsym = make_interned_symbol("if");
 }
 
 void plisp_toplevel_def(plisp_t *sym, plisp_t *obj) {
@@ -42,7 +44,7 @@ plisp_t *plisp_call_prim(plisp_t *fn, plisp_t *rest_uneval) {
     for (int i = 0; i < pfn.nargs; ++i) {
         if (plisp_c_null(rest_uneval)) {
             fprintf(stderr, "error: not enough arguments to function ");
-            plisp_write(stderr, fn);
+            plisp_c_write(stderr, fn);
             fprintf(stderr, "\n");
             return NULL;
         }
@@ -61,7 +63,7 @@ plisp_t *plisp_call_prim(plisp_t *fn, plisp_t *rest_uneval) {
     } else {
         if (!plisp_c_null(rest_uneval)) {
             fprintf(stderr, "error: too many arguments to function ");
-            plisp_write(stderr, fn);
+            plisp_c_write(stderr, fn);
             fprintf(stderr, "\n");
             return NULL;
         }
@@ -101,6 +103,19 @@ plisp_t *plisp_eval(plisp_t *form) {
         // builtin special forms
         if (plisp_c_eq(plisp_car(form), quotesym)) {
             return plisp_car(plisp_cdr(form));
+        } else if (plisp_c_eq(plisp_car(form), ifsym)) {
+            if (plisp_c_length(form) != 4) {
+                fprintf(stderr, "invalid number of arguments to form if: ");
+                plisp_c_write(stderr, form);
+                fprintf(stderr, "\n");
+                return NULL;
+            }
+
+            if (plisp_c_not(plisp_eval(plisp_cadr(form)))) {
+                return plisp_eval(plisp_cadddr(form));
+            } else {
+                return plisp_eval(plisp_caddr(form));
+            }
         }
 
         plisp_t* fn = plisp_eval(plisp_car(form));
@@ -113,7 +128,7 @@ plisp_t *plisp_eval(plisp_t *form) {
         }
 
         fprintf(stderr, "cannot call non-function: ");
-        plisp_write(stderr, fn);
+        plisp_c_write(stderr, fn);
         fprintf(stderr, "\n");
         return NULL;
     } else if (form->tid == TID_SYMBOL) {

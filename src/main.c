@@ -23,7 +23,7 @@ int main() {
 
         plisp_t *result = plisp_eval(obj);
         if (result != NULL) {
-            plisp_write(stdout, result);
+            plisp_c_write(stdout, result);
             putchar('\n');
         }
     }

@@ -1,6 +1,7 @@
 #include <plisp/read.h>
 #include <plisp/object.h>
 #include <plisp/hashtable.h>
+#include <plisp/builtin.h>
 
 #include <stdbool.h>
 #include <ctype.h>
@@ -8,8 +9,13 @@
 
 plisp_t *intern_table = NULL;
 
+plisp_t *fsym = NULL;
+plisp_t *tsym = NULL;
+
 void plisp_init_reader(void) {
     intern_table = plisp_make_hashtable(HT_EQUAL);
+    fsym = make_interned_symbol("f");
+    tsym = make_interned_symbol("t");
 }
 
 plisp_t *plisp_read_list(FILE *f) {
@@ -114,6 +120,18 @@ plisp_t *plisp_read_call(FILE *f, const char *sym) {
             plisp_make_nil()));
 }
 
+plisp_t *plisp_read_hash(FILE *f) {
+    plisp_t *sym = plisp_read_symbol(f);
+
+    if (plisp_c_eq(sym, fsym)) {
+        return plisp_make_bool(false);
+    } else if (plisp_c_eq(sym, tsym)) {
+        return plisp_make_bool(true);
+    }
+
+    return NULL;
+}
+
 plisp_t *plisp_read(FILE *f) {
     int ch;
     do {
@@ -135,8 +153,7 @@ plisp_t *plisp_read(FILE *f) {
     } else if (ch == ',') {
         return plisp_read_call(f, "unquote");
     } else if (ch == '#') {
-        //parse custom stuff
-        return NULL;
+        return plisp_read_hash(f);
     } else if (isdigit(ch)) {
         ungetc(ch, f);
         return plisp_read_number(f);

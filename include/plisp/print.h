@@ -5,6 +5,6 @@
 
 #include <stdio.h>
 
-void plisp_write(FILE *f, plisp_t *obj);
+void plisp_c_write(FILE *f, plisp_t *obj);
 
 #endif
