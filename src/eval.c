@@ -8,8 +8,11 @@
 
 plisp_t *toplevel = NULL;
 
+plisp_t *quotesym = NULL;
+
 void plisp_init_eval(void) {
     toplevel = plisp_make_hashtable(HT_EQ);
+    quotesym = make_interned_symbol("quote");
 }
 
 void plisp_toplevel_def(plisp_t *sym, plisp_t *obj) {
@@ -95,6 +98,11 @@ plisp_t *plisp_call_prim(plisp_t *fn, plisp_t *rest_uneval) {
 
 plisp_t *plisp_eval(plisp_t *form) {
     if (form->tid == TID_CONS) {
+        // builtin special forms
+        if (plisp_c_eq(plisp_car(form), quotesym)) {
+            return plisp_car(plisp_cdr(form));
+        }
+
         plisp_t* fn = plisp_eval(plisp_car(form));
         if (fn == NULL) {
             return NULL;
