@@ -96,6 +96,14 @@ plisp_t *plisp_cdr(plisp_t *obj) {
 plisp_t *plisp_plus(plisp_t *lst);
 plisp_t *plisp_minus(plisp_t *lst);
 
+bool plisp_c_null(plisp_t *obj) {
+    return obj->tid == TID_NIL;
+}
+
+plisp_t *plisp_null(plisp_t *obj) {
+    return plisp_make_bool(plisp_c_null(obj));
+}
+
 void plisp_builtin_init(void) {
     plisp_def_subr("eq?", plisp_eq, 2, false);
     plisp_def_subr("eqv?", plisp_eqv, 2, false);
@@ -104,4 +112,6 @@ void plisp_builtin_init(void) {
     plisp_def_subr("cons", plisp_cons, 2, false);
     plisp_def_subr("car", plisp_car, 1, false);
     plisp_def_subr("cdr", plisp_cdr, 1, false);
+
+    plisp_def_subr("null?", plisp_null, 1, false);
 }

@@ -36,6 +36,8 @@ struct pl_custom {
     void *obj;
 };
 
+#define PRIM_FN_MAX_ARGS 10
+
 struct pl_prim_fn {
     void *fp;
     short nargs;

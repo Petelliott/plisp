@@ -2,6 +2,7 @@
 #include <plisp/gc.h>
 
 #include <string.h>
+#include <assert.h>
 
 plisp_t nil = { .tid = TID_NIL };
 
@@ -66,6 +67,7 @@ plisp_t *plisp_make_custom(const char *name, void *obj) {
 }
 
 plisp_t *plisp_make_prim_fn(void *fp, short nargs, bool rest) {
+    assert(nargs <= PRIM_FN_MAX_ARGS);
     plisp_t *obj = alloc_plisp_obj();
     obj->tid = TID_PRIM_FN;
     obj->data.primfn.fp = fp;
