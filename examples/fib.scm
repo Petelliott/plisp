@@ -5,5 +5,5 @@
       (+ (fib (- n 1))
          (fib (- n 2))))))
 
-(write (fib 25))
+(write (fib 35))
 (newline)
