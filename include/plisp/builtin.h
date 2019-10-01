@@ -24,7 +24,7 @@ plisp_t *plisp_cadr(plisp_t *obj);
 plisp_t *plisp_caddr(plisp_t *obj);
 plisp_t *plisp_cadddr(plisp_t *obj);
 
-plisp_t *plisp_plus(plisp_t *lst);
+plisp_t *plisp_plus(plisp_t *obja, plisp_t *objb);
 plisp_t *plisp_minus(plisp_t *lst);
 
 bool plisp_c_null(plisp_t *obj);

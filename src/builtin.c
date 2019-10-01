@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 
 
 bool plisp_c_eq(plisp_t *a, plisp_t *b) {
@@ -113,7 +114,12 @@ plisp_t *plisp_cadddr(plisp_t *obj) {
     return plisp_car(plisp_cdddr(obj));
 }
 
-plisp_t *plisp_plus(plisp_t *lst);
+plisp_t *plisp_plus(plisp_t *obja, plisp_t *objb) {
+    assert(obja->tid == TID_INT);
+    assert(objb->tid == TID_INT);
+    return plisp_make_int(obja->data.i + objb->data.i);
+}
+
 plisp_t *plisp_minus(plisp_t *lst);
 
 bool plisp_c_null(plisp_t *obj) {
@@ -182,6 +188,8 @@ void plisp_builtin_init(void) {
     plisp_def_subr("cons", plisp_cons, 2, false);
     plisp_def_subr("car", plisp_car, 1, false);
     plisp_def_subr("cdr", plisp_cdr, 1, false);
+
+    plisp_def_subr("+", plisp_plus, 2, false);
 
     plisp_def_subr("cddr", plisp_cddr, 1, false);
     plisp_def_subr("cdddr", plisp_cdddr, 1, false);

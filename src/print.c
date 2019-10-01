@@ -38,6 +38,8 @@ void plisp_c_write(FILE *f, plisp_t *obj) {
         fprintf(f, "#<%s>", obj->data.custom.nameid);
     } else if (obj->tid == TID_PRIM_FN) {
         fprintf(f, "#<builtin function>");
+    } else if (obj->tid == TID_CLOSURE) {
+        fprintf(f, "#<interpreted closure>");
     } else {
         fprintf(f, "#?");
     }

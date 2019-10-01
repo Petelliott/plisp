@@ -76,3 +76,13 @@ plisp_t *plisp_make_prim_fn(void *fp, short nargs, bool rest) {
 
     return obj;
 }
+
+plisp_t *plisp_make_closure(plisp_t *arglist, plisp_t *env, plisp_t *code) {
+    plisp_t *obj = alloc_plisp_obj();
+    obj->tid = TID_CLOSURE;
+    obj->data.closure.arglist = arglist;
+    obj->data.closure.env = env;
+    obj->data.closure.code = code;
+
+    return obj;
+}

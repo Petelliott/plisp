@@ -6,6 +6,7 @@
 #include <plisp/gc.h>
 
 #include <stdio.h>
+#include <assert.h>
 
 plisp_t *toplevel = NULL;
 
@@ -13,6 +14,7 @@ plisp_t *quotesym = NULL;
 plisp_t *ifsym = NULL;
 plisp_t *definesym = NULL;
 plisp_t *setsym = NULL;
+plisp_t *lambdasym = NULL;
 
 void plisp_init_eval(void) {
     toplevel = plisp_make_hashtable(HT_EQ);
@@ -20,6 +22,7 @@ void plisp_init_eval(void) {
     ifsym = make_interned_symbol("if");
     definesym = make_interned_symbol("define");
     setsym = make_interned_symbol("set!");
+    lambdasym = make_interned_symbol("lambda");
 }
 
 void plisp_c_def(plisp_t *scope, plisp_t *sym, plisp_t *obj) {
@@ -183,6 +186,35 @@ plisp_t *plisp_set(plisp_t *form, plisp_t *scope) {
     return val;
 }
 
+plisp_t *plisp_lambda(plisp_t *form, plisp_t *scope) {
+    if (plisp_c_length(form) < 3) {
+        fprintf(stderr, "invalid number of arguments to form lambda: ");
+        plisp_c_write(stderr, form);
+        fprintf(stderr, "\n");
+        return NULL;
+    }
+
+    return plisp_make_closure(plisp_cadr(form), scope, plisp_cddr(form));
+}
+
+plisp_t *plisp_call_lambda(plisp_t *fn, plisp_t *rest_uneval, plisp_t *scope) {
+    assert(fn->tid == TID_CLOSURE);
+    struct pl_closure pfn = fn->data.closure;
+    plisp_t *newscope = plisp_hashtable_clone(pfn.env);
+
+    for (plisp_t *l = pfn.arglist; l != plisp_make_nil(); l = plisp_cdr(l)) {
+        plisp_c_def(newscope, plisp_car(l), plisp_eval(plisp_car(rest_uneval), scope));
+        rest_uneval = plisp_cdr(rest_uneval);
+    }
+
+    plisp_t *ret = plisp_make_nil();
+    for (plisp_t *b = pfn.code; b != plisp_make_nil(); b = plisp_cdr(b)) {
+        ret = plisp_eval(plisp_car(b), newscope);
+    }
+
+    return ret;
+}
+
 plisp_t *plisp_eval(plisp_t *form, plisp_t *scope) {
     if (form->tid == TID_CONS) {
         // builtin special forms
@@ -194,6 +226,8 @@ plisp_t *plisp_eval(plisp_t *form, plisp_t *scope) {
             return plisp_define(form, scope);
         } else if (plisp_c_eq(plisp_car(form), setsym)) {
             return plisp_set(form, scope);
+        } else if (plisp_c_eq(plisp_car(form), lambdasym)) {
+            return plisp_lambda(form, scope);
         }
 
         plisp_t* fn = plisp_eval(plisp_car(form), scope);
@@ -201,8 +235,11 @@ plisp_t *plisp_eval(plisp_t *form, plisp_t *scope) {
             return NULL;
         }
 
+        //TODO: replace with an apply function
         if (fn->tid == TID_PRIM_FN) {
             return plisp_call_prim(fn, plisp_cdr(form), scope);
+        } else if (fn->tid == TID_CLOSURE) {
+            return plisp_call_lambda(fn, plisp_cdr(form), scope);
         }
 
         fprintf(stderr, "cannot call non-function: ");
