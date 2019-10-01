@@ -120,7 +120,17 @@ plisp_t *plisp_plus(plisp_t *obja, plisp_t *objb) {
     return plisp_make_int(obja->data.i + objb->data.i);
 }
 
-plisp_t *plisp_minus(plisp_t *lst);
+plisp_t *plisp_minus(plisp_t *obja, plisp_t *objb) {
+    assert(obja->tid == TID_INT);
+    assert(objb->tid == TID_INT);
+    return plisp_make_int(obja->data.i - objb->data.i);
+}
+
+plisp_t *plisp_lt(plisp_t *obja, plisp_t *objb) {
+    assert(obja->tid == TID_INT);
+    assert(objb->tid == TID_INT);
+    return plisp_make_bool(obja->data.i < objb->data.i);
+}
 
 bool plisp_c_null(plisp_t *obj) {
     return obj->tid == TID_NIL;
@@ -189,13 +199,16 @@ void plisp_builtin_init(void) {
     plisp_def_subr("car", plisp_car, 1, false);
     plisp_def_subr("cdr", plisp_cdr, 1, false);
 
-    plisp_def_subr("+", plisp_plus, 2, false);
 
     plisp_def_subr("cddr", plisp_cddr, 1, false);
     plisp_def_subr("cdddr", plisp_cdddr, 1, false);
     plisp_def_subr("cadr", plisp_cadr, 1, false);
     plisp_def_subr("caddr", plisp_caddr, 1, false);
     plisp_def_subr("cadddr", plisp_cadddr, 1, false);
+
+    plisp_def_subr("+", plisp_plus, 2, false);
+    plisp_def_subr("-", plisp_minus, 2, false);
+    plisp_def_subr("<", plisp_lt, 2, false);
 
     plisp_def_subr("null?", plisp_null, 1, false);
     plisp_def_subr("symbol?", plisp_symbolp, 1, false);
