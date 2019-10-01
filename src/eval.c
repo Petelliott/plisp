@@ -194,7 +194,7 @@ plisp_t *plisp_lambda(plisp_t *form, plisp_t *scope) {
         return NULL;
     }
 
-    return plisp_make_closure(plisp_cadr(form), scope, plisp_cddr(form));
+    return plisp_make_closure(plisp_cadr(form), plisp_hashtable_clone(scope), plisp_cddr(form));
 }
 
 plisp_t *plisp_call_lambda(plisp_t *fn, plisp_t *rest_uneval, plisp_t *scope) {
