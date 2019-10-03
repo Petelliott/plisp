@@ -101,6 +101,14 @@ b
 
 define creates a new variable in it's current scope, even if that variable already exists
 
+it can also do the shorthand:
+
+```
+(define (a b c) (+ b c))
+--->
+(define a (lambda (b c) (+ b c)))
+```
+
 examples:
 
 ```
@@ -108,7 +116,7 @@ examples:
 5
 > a
 5
-> (define b (lambda () a))
+> (define (b) a)
 #<interpreted closure>
 > (define a 8)
 8

@@ -147,6 +147,26 @@ plisp_t *plisp_if(plisp_t *form, plisp_t *scope) {
 }
 
 plisp_t *plisp_define(plisp_t *form, plisp_t *scope) {
+
+    if (plisp_c_length(form) < 3) {
+        fprintf(stderr, "invalid number of arguments to form define: ");
+        plisp_c_write(stderr, form);
+        fprintf(stderr, "\n");
+        return NULL;
+    }
+
+    if (plisp_c_pairp(plisp_cadr(form))) {
+        // define function case
+
+        plisp_t *lambdaf = plisp_cons(lambdasym,
+                plisp_cons(plisp_cdr(plisp_cadr(form)), plisp_cddr(form)));
+
+        plisp_c_def(scope, plisp_car(plisp_cadr(form)), plisp_make_nil());
+        plisp_t *val = plisp_eval(lambdaf, scope);
+        plisp_c_set(scope, plisp_car(plisp_cadr(form)), val);
+        return val;
+    }
+
     if (plisp_c_length(form) != 3) {
         fprintf(stderr, "invalid number of arguments to form define: ");
         plisp_c_write(stderr, form);

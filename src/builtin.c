@@ -148,6 +148,23 @@ plisp_t *plisp_symbolp(plisp_t *obj) {
     return plisp_make_bool(plisp_c_symbolp(obj));
 }
 
+bool plisp_c_pairp(plisp_t *obj) {
+    return obj->tid == TID_CONS;
+}
+
+plisp_t *plisp_pairp(plisp_t *obj) {
+    return plisp_make_bool(plisp_c_pairp(obj));
+}
+
+bool plisp_c_listp(plisp_t *obj) {
+    return plisp_c_null(obj) ||
+        (plisp_c_pairp(obj) && plisp_c_listp(plisp_cdr(obj)));
+}
+
+plisp_t *plisp_listp(plisp_t *obj) {
+    return plisp_make_bool(plisp_c_listp(obj));
+}
+
 bool plisp_c_not(plisp_t *obj) {
     return plisp_c_eq(obj, plisp_make_bool(false));
 }
@@ -212,6 +229,8 @@ void plisp_builtin_init(void) {
 
     plisp_def_subr("null?", plisp_null, 1, false);
     plisp_def_subr("symbol?", plisp_symbolp, 1, false);
+    plisp_def_subr("pair?", plisp_pairp, 1, false);
+    plisp_def_subr("list?", plisp_listp, 1, false);
 
     plisp_def_subr("not", plisp_not, 1, false);
 
