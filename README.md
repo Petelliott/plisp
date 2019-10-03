@@ -73,9 +73,18 @@ strings are immutable character arrays.
 | `\r` | carrige return |
 | `\e` | ansi escape |
 | `\\` | slash |
+| `\"` | double quote |
 | `\nnn` | 3 digit octal sequence |
 | `\xhh` | 2 digit hex sequence |
 
+examples:
+
+```
+> "abcdefg"
+"abcdefg"
+> "\n\t\r\101\""
+"\n\t\rA\""
+```
 
 ## special forms
 
