@@ -52,6 +52,15 @@ plisp_t *plisp_make_string(const char *str) {
     return obj;
 };
 
+plisp_t *plisp_make_string_owned(char *str, size_t len) {
+    plisp_t *obj = alloc_plisp_obj();
+    obj->tid = TID_STRING;
+    obj->data.string.len  = len;
+    obj->data.string.base = str;
+
+    return obj;
+}
+
 plisp_t *plisp_make_symbol(const char *name) {
     plisp_t *obj = plisp_make_string(name);
     obj->tid = TID_SYMBOL;

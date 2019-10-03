@@ -30,6 +30,8 @@ void plisp_c_write(FILE *f, plisp_t *obj) {
         } else {
             fprintf(f, "#f");
         }
+    } else if (obj->tid == TID_STRING) {
+        fprintf(f, "\"%s\"", obj->data.string.base);
     } else if (obj->tid == TID_SYMBOL) {
         fprintf(f, "%s", obj->data.string.base);
     } else if (obj->tid == TID_NIL) {

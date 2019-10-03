@@ -2,6 +2,7 @@
 #include <plisp/object.h>
 #include <plisp/hashtable.h>
 #include <plisp/builtin.h>
+#include <plisp/gc.h>
 
 #include <stdbool.h>
 #include <ctype.h>
@@ -56,8 +57,64 @@ plisp_t *plisp_read_list(FILE *f) {
     }
 }
 
+static int hexdig(char dig) {
+    if (dig >= 'A' && dig <= 'F') {
+        return 0xa + (dig-'A');
+    } else if (dig >= 'a' && dig <= 'f') {
+        return 0xA + (dig-'a');
+    } else if (dig >= '0' && dig <= '9') {
+        return dig - '0';
+    }
+    return -1;
+}
+static char read_escape(FILE *f) {
+    char ch = fgetc(f);
+    if(ch == 'n') {
+        return '\n';
+    } else if (ch == 't') {
+        return '\t';
+    } else if (ch == 'r') {
+        return '\r';
+    } else if (ch == 'e') {
+        return '\e';
+    } else if (ch == '\\') {
+        return '\\';
+    } else if (isdigit(ch)) {
+        return (ch-'0')*64 + (fgetc(f)-'0')*8 + (fgetc(f)-'0');
+    } else if (isdigit(ch)) {
+        return (ch-'0')*64 + (fgetc(f)-'0')*8 + (fgetc(f)-'0');
+    } else if (ch=='x') {
+        return hexdig(fgetc(f))*16 + hexdig(fgetc(f));
+    } else {
+        return ch;
+    }
+}
+
+const size_t STR_INIT_CAP = 16;
+
 plisp_t *plisp_read_string(FILE *f) {
-    return NULL;
+    char ch;
+    char *str = plisp_alloc_atomic(STR_INIT_CAP);
+    size_t len = 0;
+    size_t cap = STR_INIT_CAP;
+
+    while ((ch = fgetc(f)) != '"') {
+        if (ch == EOF) {
+            fprintf(stderr, "error while parsing string: unexpected EOF\n");
+            return NULL;
+        }
+        if (ch == '\\') {
+            ch = read_escape(f);
+        }
+        str[len] = ch;
+        len++;
+        if (len+1 == cap) {
+            cap = (cap * 5) / 4;
+            str = plisp_realloc(str, cap);
+        }
+    }
+    str[len] = 0;
+    return plisp_make_string_owned(str, len);
 }
 
 bool symchar(int ch) {

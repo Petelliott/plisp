@@ -73,6 +73,7 @@ plisp_t *plisp_make_int(long i);
 plisp_t *plisp_make_bool(bool b);
 plisp_t *plisp_make_float(double f);
 plisp_t *plisp_make_string(const char *str);
+plisp_t *plisp_make_string_owned(char *str, size_t len);
 plisp_t *plisp_make_symbol(const char *name);
 plisp_t *plisp_make_custom(const char *name, void *obj);
 plisp_t *plisp_make_prim_fn(void *fp, short nargs, bool rest);
