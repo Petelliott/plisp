@@ -69,6 +69,8 @@ void plisp_c_write(FILE *f, plisp_t *obj) {
         fprintf(f, "#<builtin function>");
     } else if (obj->tid == TID_CLOSURE) {
         fprintf(f, "#<interpreted closure>");
+    } else if (obj->tid == TID_COMPILED) {
+        fprintf(f, "#<compiled closure>");
     } else {
         fprintf(f, "#?");
     }

@@ -15,7 +15,8 @@ enum TYPEID {
     TID_SYMBOL,
     TID_CUSTOM,
     TID_PRIM_FN,
-    TID_CLOSURE
+    TID_CLOSURE,
+    TID_COMPILED
 };
 
 typedef struct pl_object plisp_t;
@@ -51,6 +52,13 @@ struct pl_closure {
     plisp_t *code;
 };
 
+struct pl_compiled {
+    plisp_t ***closure;
+    void *fp;
+    short nargs;
+    bool rest;
+};
+
 union pl_obj_data {
     struct pl_cons cons;
     long i;
@@ -60,6 +68,7 @@ union pl_obj_data {
     struct pl_custom custom;
     struct pl_prim_fn primfn;
     struct pl_closure closure;
+    struct pl_compiled compiled;
 };
 
 struct pl_object {
