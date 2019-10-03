@@ -17,12 +17,11 @@ extern const char *ht_name;
 struct ht_bucket {
     plisp_t *key;
     void *value;
-    struct ht_bucket *next;
 };
 
 struct pl_hashtable {
     enum HT_KEY keytype;
-    struct ht_bucket **buckets;
+    struct ht_bucket *buckets;
     size_t len;
     size_t elems;
 };

@@ -68,7 +68,7 @@ they are used to represent lists:
 
 quote returns it's argument unevaluated.
 
-the reader will interpret `'<object>` and `(quote <object>)`
+the reader will interpret `'<object>` as `(quote <object>)`
 
 examples:
 

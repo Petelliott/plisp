@@ -6,16 +6,17 @@
 
 #include <string.h>
 #include <assert.h>
+#include <stdio.h>
 
 const char *ht_name = "hash-table";
 
-const size_t HT_DEFAULT_SIZE = 64;
+const size_t HT_DEFAULT_SIZE = 31;
 
-struct pl_hashtable *plisp_object_to_hashtable(plisp_t *obj) {
+struct pl_hashtable **plisp_object_to_hashtable(plisp_t *obj) {
     assert(obj->tid == TID_CUSTOM);
     assert(obj->data.custom.nameid == ht_name);
 
-    return obj->data.custom.obj;
+    return (struct pl_hashtable **) &(obj->data.custom.obj);
 }
 
 plisp_t *plisp_make_hashtable(enum HT_KEY keytype) {
@@ -23,8 +24,8 @@ plisp_t *plisp_make_hashtable(enum HT_KEY keytype) {
     ht->len = HT_DEFAULT_SIZE;
     ht->elems = 0;
     ht->keytype = keytype;
-    ht->buckets = plisp_alloc(sizeof(struct ht_bucket *) * ht->len);
-    memset(ht->buckets, 0, sizeof(struct ht_bucket *) * ht->len);
+    ht->buckets = plisp_alloc(sizeof(struct ht_bucket) * ht->len);
+    memset(ht->buckets, 0, sizeof(struct ht_bucket) * ht->len);
 
     plisp_t *ht_obj = alloc_plisp_obj();
     ht_obj->tid = TID_CUSTOM;
@@ -34,32 +35,16 @@ plisp_t *plisp_make_hashtable(enum HT_KEY keytype) {
     return ht_obj;
 }
 
-struct ht_bucket *plisp_bucket_clone(struct ht_bucket *bucket) {
-    if (bucket == NULL) {
-        return NULL;
-    }
-
-    struct ht_bucket *hb = plisp_alloc(sizeof(struct ht_bucket));
-    hb->key = bucket->key;
-    hb->value = bucket->value;
-    hb->next = plisp_bucket_clone(bucket->next);
-
-    return hb;
-}
-
 plisp_t *plisp_hashtable_clone(plisp_t *ht) {
-    struct pl_hashtable *table = plisp_object_to_hashtable(ht);
+    struct pl_hashtable *table = *plisp_object_to_hashtable(ht);
 
     struct pl_hashtable *nht = plisp_alloc(sizeof(struct pl_hashtable));
     nht->len = table->len;
     nht->elems = table->elems;
     nht->keytype = table->keytype;
-    nht->buckets = plisp_alloc(sizeof(struct ht_bucket *) * table->len);
-    memset(nht->buckets, 0, sizeof(struct ht_bucket *) * table->len);
+    nht->buckets = plisp_alloc(sizeof(struct ht_bucket) * table->len);
 
-    for(size_t i = 0; i < nht->len; ++i) {
-        nht->buckets[i] = plisp_bucket_clone(table->buckets[i]);
-    }
+    memcpy(nht->buckets, table->buckets, sizeof(struct ht_bucket) * table->len);
 
     plisp_t *ht_obj = alloc_plisp_obj();
     ht_obj->tid = TID_CUSTOM;
@@ -70,39 +55,65 @@ plisp_t *plisp_hashtable_clone(plisp_t *ht) {
 }
 
 void *plisp_hashtable_find(plisp_t *ht, plisp_t *key) {
-    struct pl_hashtable *table = plisp_object_to_hashtable(ht);
+    struct pl_hashtable *table = *plisp_object_to_hashtable(ht);
 
     plisp_hash_t hash = plisp_hash(key, table->keytype) % table->len;
 
-    struct ht_bucket *hb;
-    for (hb = table->buckets[hash]; hb != NULL; hb = hb->next) {
-        if (plisp_compare(key, hb->key, table->keytype)) {
-            return hb->value;
+    for (plisp_hash_t i = hash;; i = (i+1) % table->len) {
+        struct ht_bucket *bkt = &(table->buckets[i]);
+        if (bkt->key == NULL) {
+            break;
+        } else if (plisp_compare(key, bkt->key, table->keytype)) {
+            assert(bkt->value != NULL);
+            return bkt->value;
         }
     }
 
     return NULL;
 }
 
-void plisp_hashtable_insert(plisp_t *ht, plisp_t *key, void *value) {
-    struct pl_hashtable *table = plisp_object_to_hashtable(ht);
+static void plisp_ht_insert(struct pl_hashtable **tp, plisp_t *key, void *value) {
+    assert(value != NULL);
+    struct pl_hashtable *table = *tp;
 
-    //TODO: grow table
+    if (3*(table->elems+1) >= 2*table->len) {
+        struct pl_hashtable *nht = plisp_alloc(sizeof(struct pl_hashtable));
+        nht->len = table->len * 2;
+        nht->elems = 0;
+        nht->keytype = table->keytype;
+        nht->buckets = plisp_alloc(sizeof(struct ht_bucket) * nht->len);
+        memset(nht->buckets, 0, sizeof(struct ht_bucket) * nht->len);
+
+        for (plisp_hash_t i = 0; i < table->len; ++i) {
+            struct ht_bucket *bkt = &(table->buckets[i]);
+            if (bkt->key != NULL) {
+                plisp_ht_insert(&nht, bkt->key, bkt->value);
+            }
+        }
+
+        *tp = nht;
+        table = *tp;
+    }
 
     plisp_hash_t hash = plisp_hash(key, table->keytype) % table->len;
 
-    struct ht_bucket **hb;
-    for (hb = &(table->buckets[hash]); *hb != NULL; hb = &((*hb)->next)) {
-        if (plisp_compare(key, (*hb)->key, table->keytype)) {
-            (*hb)->value = value;
-            return;
+    for (plisp_hash_t i = hash;; i = (i+1) % table->len) {
+        struct ht_bucket *bkt = &(table->buckets[i]);
+        if (bkt->key == NULL) {
+            bkt->key = key;
+            bkt->value = value;
+            table->elems++;
+            break;
+        } else if (plisp_compare(key, bkt->key, table->keytype)) {
+            bkt->value = value;
+            break;
         }
     }
-    *hb = plisp_alloc(sizeof(struct ht_bucket));
-    (*hb)->key = key;
-    (*hb)->value = value;
-    (*hb)->next = NULL;
-    table->elems++;
+}
+
+void plisp_hashtable_insert(plisp_t *ht, plisp_t *key, void *value) {
+    struct pl_hashtable **table = plisp_object_to_hashtable(ht);
+    plisp_ht_insert(table, key, value);
 }
 
 void *plisp_hashtable_delete(plisp_t *ht, plisp_t *key);
