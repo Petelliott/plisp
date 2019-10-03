@@ -62,6 +62,21 @@ they are used to represent lists:
 (1 2 3 4)
 ```
 
+### strings
+
+strings are immutable character arrays.
+
+| escape sequence | result |
+|-----|-----|
+| `\n` | newline |
+| `\t` | tab |
+| `\r` | carrige return |
+| `\e` | ansi escape |
+| `\\` | slash |
+| `\nnn` | 3 digit octal sequence |
+| `\xhh` | 2 digit hex sequence |
+
+
 ## special forms
 
 ### quote

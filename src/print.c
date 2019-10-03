@@ -1,20 +1,47 @@
 #include <plisp/print.h>
 
+#include <ctype.h>
+
 void plisp_c_write_cons(FILE *f, plisp_t *obj) {
-        plisp_t *car = obj->data.cons.car;
-        plisp_t *cdr = obj->data.cons.cdr;
+    plisp_t *car = obj->data.cons.car;
+    plisp_t *cdr = obj->data.cons.cdr;
 
-        plisp_c_write(f, car);
+    plisp_c_write(f, car);
 
-        if (cdr->tid == TID_NIL) {
-            return;
-        } else if (cdr->tid == TID_CONS) {
-            fprintf(f, " ");
-            plisp_c_write_cons(f, cdr);
+    if (cdr->tid == TID_NIL) {
+        return;
+    } else if (cdr->tid == TID_CONS) {
+        fprintf(f, " ");
+        plisp_c_write_cons(f, cdr);
+    } else {
+        fprintf(f, " . ");
+        plisp_c_write(f, cdr);
+    }
+}
+
+static void plisp_c_write_string(FILE *f, plisp_t *obj) {
+    fputc('"',f);
+    for (size_t i = 0; i < obj->data.string.len; ++i) {
+        char ch = obj->data.string.base[i];
+        if (ch == '"') {
+            fprintf(f, "\\\"");
+        } else if (ch == '\\') {
+            fprintf(f, "\\\\");
+        } else if (ch == '\n') {
+            fprintf(f, "\\n");
+        } else if (ch == '\r') {
+            fprintf(f, "\\r");
+        } else if (ch == '\e') {
+            fprintf(f, "\\e");
+        } else if (ch == '\t') {
+            fprintf(f, "\\t");
+        } else if (isprint(ch)) {
+            fputc(ch, f);
         } else {
-            fprintf(f, " . ");
-            plisp_c_write(f, cdr);
+            fprintf(f, "\\x%X", (unsigned char)ch);
         }
+    }
+    fputc('"', f);
 }
 
 void plisp_c_write(FILE *f, plisp_t *obj) {
@@ -31,7 +58,7 @@ void plisp_c_write(FILE *f, plisp_t *obj) {
             fprintf(f, "#f");
         }
     } else if (obj->tid == TID_STRING) {
-        fprintf(f, "\"%s\"", obj->data.string.base);
+        plisp_c_write_string(f, obj);
     } else if (obj->tid == TID_SYMBOL) {
         fprintf(f, "%s", obj->data.string.base);
     } else if (obj->tid == TID_NIL) {
